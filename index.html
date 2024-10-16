@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+
+  <style>
+    /* General Reset */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Open Sans', sans-serif;
+      overflow: hidden;
+      background: url('C:/Users/mehar/task 2/App2-Weather-app/media/bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      animation: fade 10s infinite alternate;
+    }
+
+    /* Background Video */
+    #bgvideo {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    /* Watermark Styling */
+    .watermark {
+      position: absolute;
+      bottom: 20px; /* Position from the bottom */
+      right: 20px; /* Position from the right */
+      color: white; /* Text color */
+      font-size: 20px; /* Font size */
+      opacity: 0.5; /* Make it lightly visible */
+      font-weight: bold; /* Bold text */
+      pointer-events: none; /* Prevent interaction */
+    }
+
+    /* Weather App UI */
+    .topcard {
+      padding: 20px;
+      text-align: center;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      border-radius: 10px;
+      margin-top: 50px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Dropdown Styling */
+    #dropdown select {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .search-bar {
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .search button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-left: 5px;
+    }
+
+    .weather img {
+      width: 50px;
+      height: 50px;
+    }
+
+    /* Animation for Background */
+    @keyframes fade {
+      0% {
+        opacity: 0.8;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <video autoplay playsinline loop muted id="bgvideo">
+    <source src="./media/default.mp4" type="video/mp4" />
+  </video>
+
+  <div id="dropdown">
+    <select name="degree" id="deg" class="dropkey">
+      <option value="C">°Celsius ▼</option>
+      <option value="K">°Kelvin ▼</option>
+      <option value="F">°Fahrenheit ▼</option>
+    </select>
+  </div>
+
+  <br>
+  <div class="topcard">
+    <div class="card">
+      <div class="search">
+        <input type="text" class="search-bar" placeholder="Search" id="city-input">
+        <button id="search-btn">
+          <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1.5em"
+              width="1.5em" xmlns="http://www.w3.org/2000/svg">
+            <path d="M909.6 854.5L649.9 594.8C690.2 542.7 712 479 712 412c0-80.2-31.3-155.4-87.9-212.1-56.6-56.7-132-87.9-212.1-87.9s-155.5 31.3-212.1 87.9C143.2 256.5 112 331.8 112 412c0 80.1 31.3 155.5 87.9 212.1C256.5 680.8 331.8 712 412 712c67 0 130.6-21.8 182.7-62l259.7 259.6a8.2 8.2 0 0 0 11.6 0l43.6-43.5a8.2 8.2 0 0 0 0-11.6z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="weather">
+        <h2 class="city">Weather in Bangalore</h2> <!-- Default city -->
+        <h1 class="temp">26.66°C</h1>
+        <div class="flex">
+          <img src="https://openweathermap.org/img/wn/04n.png" alt="" class="icon" />
+          <div class="description">Cloudy</div>
+        </div>
+        <p class="dt">22/10/24</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="watermark">Created by MD ISMAIL</div> <!-- Watermark -->
+
+  <script>
+    // OpenWeatherMap API key
+    const apiKey = '5efb5d1b5590322f6cdc7667d7f35f5d';
+
+    // DOM Elements
+    const searchBar = document.getElementById('city-input');
+    const searchButton = document.getElementById('search-btn');
+    const bgVideo = document.getElementById('bgvideo');
+    const weatherDescription = document.querySelector('.description');
+
+    // Fetch Weather Data from API
+    async function fetchWeather(city) {
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+      try {
+        const response = await fetch(url);
+        
+        // Log the response to see what we get
+        console.log(response);
+        
+        if (!response.ok) {
+          throw new Error('City not found'); // If the response isn't OK, throw an error
+        }
+        
+        const data = await response.json();
+        
+        // Log the data to see what we get
+        console.log(data);
+        
+        updateWeatherUI(data);
+        changeBackground(data.weather[0].main);
+      } catch (error) {
+        alert(error.message); // Alert user if there is an error
+      }
+    }
+
+    // Update UI with Weather Data
+    function updateWeatherUI(data) {
+      document.querySelector('.city').innerText = `Weather in ${data.name}`;
+      document.querySelector('.temp').innerText = `${data.main.temp}°C`;
+      weatherDescription.innerText = data.weather[0].description;
+      document.querySelector('.icon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}.png`;
+    }
+
+    // Change Background Video Based on Weather
+    function changeBackground(weather) {
+      switch (weather.toLowerCase()) {
+        case 'clear':
+          bgVideo.src = './media/sunny.mp4';
+          break;
+        case 'clouds':
+          bgVideo.src = './media/cloudy.mp4';
+          break;
+        case 'rain':
+          bgVideo.src = './media/rain.mp4';
+          break;
+        case 'snow':
+          bgVideo.src = './media/snow.mp4';
+          break;
+        default:
+          bgVideo.src = './media/default.mp4'; 
+          break;
+      }
+    }
+
+    // Search Button Event Listener
+    searchButton.addEventListener('click', () => {
+      const city = searchBar.value.trim(); // Trim any whitespace from input
+      if (city) {
+        fetchWeather(city);
+      }
+    });
+  </script>
+
+</body>
+
+</html>
